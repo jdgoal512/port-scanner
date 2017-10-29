@@ -8,7 +8,7 @@ logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
 
 #The default ports to scan in none are specified
-default_ports = [20,21,22,23,25,53,67,68,69,79,80,88,110,123,135,137,138,139,143,161,162,179,389,445,464,593,636,989,990,1025,1026,1039,1070,1234,2222,3268,3389,8000,8080,8081,8888]
+default_ports = [5,8,20,21,22,23,25,53,67,68,69,79,80,88,110,123,135,137,138,139,143,161,162,179,360,389,427,443,445,464,515,546,593,631,636,989,990,1022,1023,1025,1026,1039,1070,1234,2222,3268,3389,8000,8080,8081,8888]
 
 #Maps port numbers to services
 PORT_LOOKUP = dict((TCP_SERVICES[k], k) for k in TCP_SERVICES.keys())
@@ -88,7 +88,10 @@ class Target:
             if reply:
                 flags = reply.getlayer(TCP).flags
                 if flags == 18: #SYNACK = 18
-                    printMessage(self.host + ":" + port + " is open [" + PORT_LOOKUP[int(port)] +"]")
+                    try:
+                        printMessage(self.host + ":" + port + " is open [" + PORT_LOOKUP[int(port)] +"]")
+                    except KeyError:
+                        printMessage(self.host + ":" + port + " is open")
                 else:
                     verboseMessage(self.host + ":" + port + " is closed", RED)
             else:
@@ -108,7 +111,10 @@ class Target:
             if reply:
                 verboseMessage(self.host + ":" + port + " is closed", RED)
             else:
-                printMessage(self.host + ":" + port + " is open [" + PORT_LOOKUP[int(port)] +"]")
+                try:
+                    printMessage(self.host + ":" + port + " is open [" + PORT_LOOKUP[int(port)] +"]")
+                except KeyError:
+                    printMessage(self.host + ":" + port + " is open")
 
     #Run Christmas Tree Scan on this machine
     def runChristmas(self, sender):
@@ -125,7 +131,10 @@ class Target:
 
             if reply is None:
                 #Port is open|filtered
-                printMessage(self.host + ":" + port + " is open|filtered [" + PORT_LOOKUP[int(port)] +"]")
+                try:
+                    printMessage(self.host + ":" + port + " is open|filtered [" + PORT_LOOKUP[int(port)] +"]")
+                except KeyError:
+                    printMessage(self.host + ":" + port + " is open")
             elif reply.haslayer(TCP):
                 if reply.getlayer(TCP).flags == 20:
                     #Port is closed
@@ -133,7 +142,10 @@ class Target:
                 elif reply.haslayer(ICMP):
                     if int(reply.getlayer(ICMP).type) == 3 and int(reply.getlayer(ICMP).code) in [1,2,3,9,10,13]:
                         #Port is filtered
-                        printMessage(self.host + ":" + port + " is filtered [" + PORT_LOOKUP[int(port)] +"]")
+                        try:
+                            printMessage(self.host + ":" + port + " is filtered [" + PORT_LOOKUP[int(port)] +"]")
+                        except KeyError:
+                            printMessage(self.host + ":" + port + " is open")
 
     #Run traceroute on this machine
     def runTraceroute(self, sender):
