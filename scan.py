@@ -124,12 +124,15 @@ class Target:
                 return
 
             if reply is None:
+                #Port is open|filtered
                 printMessage(self.host + ":" + port + " is open|filtered [" + PORT_LOOKUP[int(port)] +"]")
             elif reply.haslayer(TCP):
                 if reply.getlayer(TCP).flags == 20:
+                    #Port is closed
                     verboseMessage(self.host + ":" + port + " is closed", RED)
                 elif reply.haslayer(ICMP):
-                    if int(reply.getlayer(ICMP).type) == 3 and int(r.getlayer(ICMP).code) in [1,2,3,9,10,13]:
+                    if int(reply.getlayer(ICMP).type) == 3 and int(reply.getlayer(ICMP).code) in [1,2,3,9,10,13]:
+                        #Port is filtered
                         printMessage(self.host + ":" + port + " is filtered [" + PORT_LOOKUP[int(port)] +"]")
 
     #Run traceroute on this machine
@@ -145,13 +148,16 @@ class Target:
             if reply is None:
                 break
             elif reply.src == self.host:
-                # We've reached our destination
-                printMessage(str(hops) + " hops away: " + reply.src + " Done!")
+                #Reached destination
+                if hops == 1:
+                    printMessage("1 hop away: " + reply.src + " Done!")
+                else:
+                    printMessage(str(hops) + " hops away: " + reply.src + " Done!")
                 break
             else:
-                # We're in the middle somewhere
+                #Hasn't reached destination yet
                 if hops == 1:
-                    printMessage(str(hops) + " hop away: " + reply.src)
+                    printMessage("1 hop away: " + reply.src)
                 else:
                     printMessage(str(hops) + " hops away: " + reply.src)
 
